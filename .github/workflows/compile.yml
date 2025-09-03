@@ -19,7 +19,7 @@ jobs:
         run: |
           # 下载最新版本的 Sing-box 二进制文件
           # 这是一个示例，请检查官方 GitHub 仓库以获取最新版本
-          SING_BOX_VERSION="1.8.0"
+          SING_BOX_VERSION="1.12.4"
           curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${SING_BOX_VERSION}/sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz
           tar -xzf sing-box.tar.gz
           mv sing-box-*/sing-box ./sing-box
