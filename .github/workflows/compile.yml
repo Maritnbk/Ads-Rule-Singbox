@@ -1,0 +1,43 @@
+name: Build Sing-box Rule-set
+
+# 这个工作流将在每日北京时间 04:00 自动运行
+# 也可以手动触发
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 20 * * *'
+
+jobs:
+  build_srs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Sing-box
+        run: |
+          # 下载最新版本的 Sing-box 二进制文件
+          # 这是一个示例，请检查官方 GitHub 仓库以获取最新版本
+          SING_BOX_VERSION="1.8.0"
+          curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${SING_BOX_VERSION}/sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz
+          tar -xzf sing-box.tar.gz
+          mv sing-box-*/sing-box ./sing-box
+          chmod +x ./sing-box
+
+      - name: Download JSON Rule-set
+        run: |
+          # 下载 Ad Rule JSON 文件
+          curl -Lo AWAvenue-Ads-Rule-Singbox.json https://github.com/TG-Twilight/AWAvenue-Ads-Rule/raw/refs/heads/main/Filters/AWAvenue-Ads-Rule-Singbox.json
+      
+      - name: Compile to SRS
+        run: |
+          # 运行编译命令，生成 .srs 文件
+          ./sing-box rule-set compile --output AWAvenue-Ads-Rule-Singbox.srs AWAvenue-Ads-Rule-Singbox.json
+          ls -lh
+
+      - name: Upload compiled SRS file
+        uses: actions/upload-artifact@v4
+        with:
+          name: AWAvenue-Ads-Rule
+          path: AWAvenue-Ads-Rule-Singbox.srs
