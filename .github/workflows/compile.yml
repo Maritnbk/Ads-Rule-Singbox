@@ -21,7 +21,7 @@ jobs:
       - name: Download Sing-box
         run: |
           # 确保 SING_BOX_VERSION 足够新，以支持最新的规则集版本
-          SING_BOX_VERSION="1.13.0"
+          SING_BOX_VERSION="1.12.4"
           curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${SING_BOX_VERSION}/sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz
           tar -xzf sing-box.tar.gz
           mv sing-box-*/sing-box ./sing-box
