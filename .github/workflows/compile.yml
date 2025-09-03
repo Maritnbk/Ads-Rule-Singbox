@@ -9,14 +9,14 @@ jobs:
   build_and_commit:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # 这一行是关键，它赋予了工作流写入权限
+      contents: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
+      
       - name: Download Sing-box
         run: |
           SING_BOX_VERSION="1.12.4"
@@ -44,8 +44,8 @@ jobs:
 
       - name: Add, Commit and Push
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git add .
+          if [ -n "$(git status --porcelain rule/)" ]; then
+            git add rule/AWAvenue-Ads-Rule-Singbox.srs
             git commit -m "feat: Auto-build and update Sing-box rule-set"
             git push
           else
