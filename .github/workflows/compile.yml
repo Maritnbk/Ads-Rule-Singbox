@@ -1,25 +1,27 @@
-name: Build Sing-box Rule-set
+name: Build Sing-box Rule-set and Commit
 
-# 这个工作流将在每日北京时间 04:00 自动运行
-# 也可以手动触发
 on:
   workflow_dispatch:
   schedule:
+    # 每日 UTC 20:00 运行，对应北京时间每日 4:00
     - cron: '0 20 * * *'
 
 jobs:
-  build_srs:
+  build_and_commit:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          # 这一行非常重要，它允许工作流推送代码
+          # GITHUB_TOKEN 是 GitHub Actions 提供的内置秘钥
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Sing-box
         run: |
-          # 下载最新版本的 Sing-box 二进制文件
-          # 这是一个示例，请检查官方 GitHub 仓库以获取最新版本
-          SING_BOX_VERSION="1.12.4"
+          # 确保 SING_BOX_VERSION 足够新，以支持最新的规则集版本
+          SING_BOX_VERSION="1.13.0"
           curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${SING_BOX_VERSION}/sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz
           tar -xzf sing-box.tar.gz
           mv sing-box-*/sing-box ./sing-box
@@ -27,17 +29,31 @@ jobs:
 
       - name: Download JSON Rule-set
         run: |
-          # 下载 Ad Rule JSON 文件
           curl -Lo AWAvenue-Ads-Rule-Singbox.json https://github.com/TG-Twilight/AWAvenue-Ads-Rule/raw/refs/heads/main/Filters/AWAvenue-Ads-Rule-Singbox.json
       
       - name: Compile to SRS
         run: |
-          # 运行编译命令，生成 .srs 文件
           ./sing-box rule-set compile --output AWAvenue-Ads-Rule-Singbox.srs AWAvenue-Ads-Rule-Singbox.json
-          ls -lh
+      
+      - name: Configure Git and Move File
+        run: |
+          # 配置 Git 用户名和邮箱，以便于后续提交
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 创建 rule 文件夹（如果不存在）
+          mkdir -p rule
+          
+          # 将编译好的 .srs 文件移动到 rule 文件夹中
+          mv AWAvenue-Ads-Rule-Singbox.srs rule/AWAvenue-Ads-Rule-Singbox.srs
 
-      - name: Upload compiled SRS file
-        uses: actions/upload-artifact@v4
-        with:
-          name: AWAvenue-Ads-Rule
-          path: AWAvenue-Ads-Rule-Singbox.srs
+      - name: Add, Commit and Push
+        run: |
+          # 检查是否有文件变动
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "feat: Auto-build and update Sing-box rule-set"
+            git push
+          else
+            echo "No changes to commit. Skipping push."
+          fi
