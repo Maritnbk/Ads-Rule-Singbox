@@ -3,24 +3,22 @@ name: Build Sing-box Rule-set and Commit
 on:
   workflow_dispatch:
   schedule:
-    # 每日 UTC 20:00 运行，对应北京时间每日 4:00
     - cron: '0 20 * * *'
 
 jobs:
   build_and_commit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # 这一行是关键，它赋予了工作流写入权限
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # 这一行非常重要，它允许工作流推送代码
-          # GITHUB_TOKEN 是 GitHub Actions 提供的内置秘钥
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download Sing-box
         run: |
-          # 确保 SING_BOX_VERSION 足够新，以支持最新的规则集版本
           SING_BOX_VERSION="1.12.4"
           curl -Lo sing-box.tar.gz https://github.com/SagerNet/sing-box/releases/download/v${SING_BOX_VERSION}/sing-box-${SING_BOX_VERSION}-linux-amd64.tar.gz
           tar -xzf sing-box.tar.gz
@@ -37,19 +35,15 @@ jobs:
       
       - name: Configure Git and Move File
         run: |
-          # 配置 Git 用户名和邮箱，以便于后续提交
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # 创建 rule 文件夹（如果不存在）
           mkdir -p rule
           
-          # 将编译好的 .srs 文件移动到 rule 文件夹中
           mv AWAvenue-Ads-Rule-Singbox.srs rule/AWAvenue-Ads-Rule-Singbox.srs
 
       - name: Add, Commit and Push
         run: |
-          # 检查是否有文件变动
           if [ -n "$(git status --porcelain)" ]; then
             git add .
             git commit -m "feat: Auto-build and update Sing-box rule-set"
