@@ -1,0 +1,7 @@
+# 忽略 Sing-box 二进制文件
+sing-box
+sing-box.tar.gz
+sing-box-*/
+
+# 忽略下载的 JSON 规则集文件
+*.json
